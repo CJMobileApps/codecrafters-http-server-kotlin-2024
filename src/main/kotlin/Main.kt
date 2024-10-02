@@ -1,4 +1,5 @@
 import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket;
@@ -17,21 +18,28 @@ fun main() {
     // To try this locally on macOS, you could run ./your_server.sh in one terminal session,
     // and nc -vz 127.0.0.1 4221 in another. (-v gives more verbose output, -z just scan for listening daemons, without sending any data to them.)
 
-    val clientSocket = serverSocket.accept() // Wait for connection from client.
-    println("accepted new connection")
+
 
     //while (true) {
+        val clientSocket = serverSocket.accept() // Wait for connection from client.
+        println("accepted new connection")
+        //val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+        //val output = BufferedWriter(clientSocket.getOutputStream())
 
-    val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-    val output = PrintWriter(clientSocket.getOutputStream(), true)
 
+        // Read the request line
+        //val requestLine = input.readLine()
+        //println("Request: $requestLine")
 
-    // Read the request line
-    val requestLine = input.readLine()
-    println("Request: $requestLine")
-
-    output.print("HTTP/1.1 200 OK\\r\\n\\r\\n")
-    //output.println("Content-Type: text/plain");
+        //output.print("HTTP/1.1 200 OK\\r\\n\\r\\n")
+//        output.printf("%s", "HTTP/1.1 200 OK\\r\\n\\r\\n\\n")
+        //output.println("Content-Type: text/plain");
+        val output = clientSocket.getOutputStream()
+        output.write("HTTP/1.1 200 OK\\r\\n\\r\\n".toByteArray())
+        output.flush()
+        output.close()
     //}
 
 }
+
+
