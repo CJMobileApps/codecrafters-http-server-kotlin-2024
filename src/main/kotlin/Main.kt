@@ -34,8 +34,13 @@ fun main() {
         //output.print("HTTP/1.1 200 OK\\r\\n\\r\\n")
 //        output.printf("%s", "HTTP/1.1 200 OK\\r\\n\\r\\n\\n")
         //output.println("Content-Type: text/plain");
+
+//        val string = "HTTP/1.1 200 OK\\" +"r\\n\\r\\n"
+        val string = "HTTP/1.1 200 OK\r\n\r\n"
+
         val output = clientSocket.getOutputStream()
-        output.write("HTTP/1.1 200 OK\\r\\n\\r\\n".toByteArray())
+        output.write(string.toByteArray())
+        println(string)
         output.flush()
         output.close()
     //}
