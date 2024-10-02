@@ -23,26 +23,27 @@ fun main() {
     //while (true) {
         val clientSocket = serverSocket.accept() // Wait for connection from client.
         println("accepted new connection")
-        //val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-        //val output = BufferedWriter(clientSocket.getOutputStream())
+        val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+    val output = PrintWriter(clientSocket.getOutputStream(), true)
 
 
-        // Read the request line
-        //val requestLine = input.readLine()
-        //println("Request: $requestLine")
+    // Read the request line
+    //val requestLine = input.readLine()
+    //println("Request: $requestLine")
+    val string = "HTTP/1.1 200 OK\r\n\r\n"
 
-        //output.print("HTTP/1.1 200 OK\\r\\n\\r\\n")
+    output.print(string)
+    output.close()
 //        output.printf("%s", "HTTP/1.1 200 OK\\r\\n\\r\\n\\n")
-        //output.println("Content-Type: text/plain");
+    //output.println("Content-Type: text/plain");
 
 //        val string = "HTTP/1.1 200 OK\\" +"r\\n\\r\\n"
-        val string = "HTTP/1.1 200 OK\r\n\r\n"
-
-        val output = clientSocket.getOutputStream()
-        output.write(string.toByteArray())
-        println(string)
-        output.flush()
-        output.close()
+//
+//        val output = clientSocket.getOutputStream()
+//        output.write(string.toByteArray())
+//        println(string)
+//        output.flush()
+//        output.close()
     //}
 
 }
