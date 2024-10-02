@@ -30,7 +30,7 @@ fun main() {
     val requestLine = input.readLine()
     println("Request: $requestLine")
 
-    output.println("HTTP/1.1 200 OK\\r\\n\\r\\n")
+    output.print("HTTP/1.1 200 OK\\r\\n\\r\\n")
     //output.println("Content-Type: text/plain");
     //}
 
