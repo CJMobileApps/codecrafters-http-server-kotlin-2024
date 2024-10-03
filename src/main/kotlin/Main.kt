@@ -31,15 +31,15 @@ fun main() {
         val requestHostPort = input.readLine()
         println("requestUrl: $requestHostPort")
 
-        val requestUserAgent = input.readLine()
-        println("requestUserAgent: $requestUserAgent")
-
-        val requestHeader = input.readLine()
-        println("requestHeader: $requestHeader")
-
-        // I think this is request body
-        val requestBody = input.readLine()
-        println("requestBody: $requestBody")
+//        val requestUserAgent = input.readLine()
+//        println("requestUserAgent: $requestUserAgent")
+//
+//        val requestHeader = input.readLine()
+//        println("requestHeader: $requestHeader")
+//
+//        // I think this is request body
+//        val requestBody = input.readLine()
+//        println("requestBody: $requestBody")
 
         val httpResponse = buildResponse(
             requestStatusLine = requestStatusLine,
