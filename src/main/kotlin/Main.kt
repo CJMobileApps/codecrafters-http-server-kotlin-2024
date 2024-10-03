@@ -64,7 +64,7 @@ fun buildResponse(requestStatusLine: String, requestHostPort: String): String {
 
     // Response body (empty)
 
-    return "$responseStatusLine $crlfHeadersLine"
+    return "$responseStatusLine$crlfHeadersLine"
 }
 
 fun buildResponseStatusLine(
