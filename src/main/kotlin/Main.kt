@@ -20,6 +20,7 @@ fun main() {
     // To try this locally on macOS, you could run ./your_server.sh in one terminal session,
     // and nc -vz 127.0.0.1 4221 in another. (-v gives more verbose output, -z just scan for listening daemons, without sending any data to them.)
     // curl -v http://localhost:4221
+    // curl -v http://localhost:4221/echo/pineapple
 
     while (true) {
         val clientSocket = serverSocket.accept() // Wait for connection from client.
@@ -68,12 +69,10 @@ fun ServerResponse.buildResponseStatusLine(
     val localServerUrl = serverState.localServerUrl()
 
     return if (requestUrl == localServerUrl) {
-        this.statusCode = "200"
-        this.optionalReasonPhrase = "OK"
-        this
+        this.setFoundOk()
     } else {
         if(requestHostNamePort != serverState.localServerHostNamePort()) {
-            return this.toNotFound()
+            return this.setNotFound()
         }
 
         val requestPaths = requestStatusLineArray[1].split("/")
@@ -94,14 +93,20 @@ fun ServerResponse.buildResponseStatusLine(
             }
 
             this.content = contentFromPath
-            return this
+            return this.setFoundOk()
         }
 
-        this.toNotFound()
+        this.setNotFound()
     }
 }
 
-fun ServerResponse.toNotFound(): ServerResponse {
+fun ServerResponse.setFoundOk(): ServerResponse {
+    this.statusCode = "200"
+    this.optionalReasonPhrase = "OK"
+    return this
+}
+
+fun ServerResponse.setNotFound(): ServerResponse {
     this.statusCode = "404"
     this.optionalReasonPhrase = "Not Found"
     return this
