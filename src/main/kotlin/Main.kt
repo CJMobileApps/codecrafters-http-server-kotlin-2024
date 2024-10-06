@@ -29,6 +29,7 @@ fun main() {
         val output = PrintWriter(clientSocket.getOutputStream(), true)
 
         val serverRequest = buildServerRequest(input = input)
+        println("serverRequest " + serverRequest)
 
         val httpResponse = buildResponse(
             serverRequest = serverRequest
