@@ -64,7 +64,7 @@ fun ServerResponse.buildResponseStatusLine(
     val requestUrlArray = requestHostPort.split(" ")
 
     // localhost:4221  /index.html
-    val requestHostNamePort = requestUrlArray[1]
+    val requestHostNamePort = if (requestUrlArray.size > 2) requestUrlArray[1] else serverState.localServerHostNamePort()
     val requestUrl = requestHostNamePort + requestStatusLineArray[1]
     val localServerUrl = serverState.localServerUrl()
 
