@@ -75,7 +75,13 @@ fun ServerResponse.buildResponseStatusLine(
             return this.setNotFound()
         }
 
+        if(requestStatusLineArray[1] == "/user-agent") {
+            this.content = serverRequest.getUserAgent()
+            return this.setFoundOk()
+        }
+
         val requestPaths = requestStatusLineArray[1].split("/")
+
 
         var contentFromPath = ""
         serverState.allowedPaths.forEach { entirePath ->
@@ -153,18 +159,24 @@ data class ServerRequest(
     var requestUserAgent: String = "",
     var requestHeader: String = "",
     var requestBody: String = "",
-)
+) {
+
+
+    fun getUserAgent(): String {
+        return requestUserAgent.split(" ").last()
+    }
+}
 
 fun buildServerRequest(input: BufferedReader): ServerRequest {
     val serverRequest = ServerRequest()
 
     val lines = mutableListOf<String>()
-
     var line = input.readLine()
     while (!line.isNullOrEmpty()) {
         lines.add(line)
         line = input.readLine()
     }
+    println(lines)
 
     if (lines.size >= 1) {
         serverRequest.requestStatusLine = lines.first()
@@ -174,18 +186,26 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
         serverRequest.requestHostPort = lines[1]
     }
 
-    if (lines.size >= 3) {
-        serverRequest.requestUserAgent = lines[2]
-    }
-
     if (lines.size >= 4) {
-        serverRequest.requestHeader = lines[3]
+        if (lines[2] != "Accept: */*") {
+            serverRequest.requestUserAgent = lines[2]
+        } else {
+            serverRequest.requestUserAgent = lines[3]
+        }
     }
 
-    // I think this is request body
-    if (lines.size >= 5) {
-        serverRequest.requestBody = lines[4]
-    }
+//    if (lines.size >= 5) {
+//        if (lines[2] != "Accept: */*") {
+//            serverRequest.requestHeader = lines[3]
+//        } else {
+//            serverRequest.requestHeader = lines[4]
+//        }
+//    }
+//
+//    // I think this is request body
+//    if (lines.size >= 5) {
+//        serverRequest.requestBody = lines[4]
+//    }
 
     println(serverRequest)
     return serverRequest
