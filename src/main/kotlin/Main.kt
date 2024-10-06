@@ -1,6 +1,5 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -28,28 +27,35 @@ suspend fun main()  = coroutineScope {
     // and nc -vz 127.0.0.1 4221 in another. (-v gives more verbose output, -z just scan for listening daemons, without sending any data to them.)
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
+
+    /* test multiple connections
+    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
+    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
+    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
+     */
+
     while (true) {
-        launch {
-            withContext(Dispatchers.IO) {
-                val clientSocket = serverSocket.accept() // Wait for connection from client.
-                println("accepted new connection")
-                //threadExecutor.execute {
 
-                val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-                val output = PrintWriter(clientSocket.getOutputStream(), true)
+        val clientSocket = withContext(Dispatchers.IO) {
+            serverSocket.accept()
+        } // Wait for connection from client.
+        println("accepted new connection")
 
-                val serverRequest = buildServerRequest(input = input)
+        withContext(Dispatchers.IO) {
+            val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+            val output = PrintWriter(clientSocket.getOutputStream(), true)
 
-                val httpResponse = buildResponse(
-                    serverRequest = serverRequest
-                )
-                println()
-                println("httpResponse $httpResponse")
+            val serverRequest = buildServerRequest(input = input)
 
-                output.print(httpResponse)
-                output.close()
-                println("Ready for new connection...")
-            }
+            val httpResponse = buildResponse(
+                serverRequest = serverRequest
+            )
+            println()
+            println("httpResponse $httpResponse")
+
+            output.print(httpResponse)
+            output.close()
+            println("Ready for new connection...")
         }
     }
 }
