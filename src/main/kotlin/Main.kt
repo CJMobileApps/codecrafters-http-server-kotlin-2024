@@ -25,11 +25,16 @@ fun main() {
     while (true) {
         val clientSocket = serverSocket.accept() // Wait for connection from client.
         println("accepted new connection")
+        try {
+            BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+            PrintWriter(clientSocket.getOutputStream(), true)
+        } catch (e: Exception) {
+            println("e " + e)
+        }
         val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
         val output = PrintWriter(clientSocket.getOutputStream(), true)
 
         val serverRequest = buildServerRequest(input = input)
-        println("serverRequest " + serverRequest)
 
         val httpResponse = buildResponse(
             serverRequest = serverRequest
