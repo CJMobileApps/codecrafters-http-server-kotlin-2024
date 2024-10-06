@@ -1,18 +1,24 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket;
-import java.util.concurrent.Executors
 
 lateinit var serverState: ServerState
 
-fun main() {
+suspend fun main()  = coroutineScope {
+
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println("Logs from your program will appear here!")
 
     serverState = ServerState()
     // Uncomment this block to pass the first stage
-    val serverSocket = ServerSocket(serverState.port)
+    val serverSocket = withContext(Dispatchers.IO) {
+        ServerSocket(serverState.port)
+    }
 
     // Since the tester restarts your program quite often, setting SO_REUSEADDR
     // ensures that we don't run into 'Address already in use' errors
@@ -22,31 +28,28 @@ fun main() {
     // and nc -vz 127.0.0.1 4221 in another. (-v gives more verbose output, -z just scan for listening daemons, without sending any data to them.)
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
-    val threadExecutor = Executors.newFixedThreadPool(2)
     while (true) {
-        val clientSocket = serverSocket.accept() // Wait for connection from client.
-        println("accepted new connection")
-        threadExecutor.execute {
-            try {
-                BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-                PrintWriter(clientSocket.getOutputStream(), true)
-            } catch (e: Exception) {
-                println("e " + e)
+        launch {
+            withContext(Dispatchers.IO) {
+                val clientSocket = serverSocket.accept() // Wait for connection from client.
+                println("accepted new connection")
+                //threadExecutor.execute {
+
+                val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+                val output = PrintWriter(clientSocket.getOutputStream(), true)
+
+                val serverRequest = buildServerRequest(input = input)
+
+                val httpResponse = buildResponse(
+                    serverRequest = serverRequest
+                )
+                println()
+                println("httpResponse $httpResponse")
+
+                output.print(httpResponse)
+                output.close()
+                println("Ready for new connection...")
             }
-            val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-            val output = PrintWriter(clientSocket.getOutputStream(), true)
-
-            val serverRequest = buildServerRequest(input = input)
-
-            val httpResponse = buildResponse(
-                serverRequest = serverRequest
-            )
-            println()
-            println("httpResponse $httpResponse")
-
-            output.print(httpResponse)
-            output.close()
-            println("Ready for new connection...")
         }
     }
 }
