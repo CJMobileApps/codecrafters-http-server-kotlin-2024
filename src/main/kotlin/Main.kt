@@ -182,17 +182,13 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
         serverRequest.requestStatusLine = lines.first()
     }
 
-    if (lines.size >= 2) {
-        serverRequest.requestHostPort = lines[1]
-    }
+    lines
+        .filter { it.contains("Host:") }
+        .map { serverRequest.requestHostPort = it }
 
-    if (lines.size >= 4) {
-        if (lines[2] != "Accept: */*") {
-            serverRequest.requestUserAgent = lines[2]
-        } else {
-            serverRequest.requestUserAgent = lines[3]
-        }
-    }
+    lines
+        .filter { it.contains("User-Agent:") }
+        .map { serverRequest.requestUserAgent = it }
 
 //    if (lines.size >= 5) {
 //        if (lines[2] != "Accept: */*") {
