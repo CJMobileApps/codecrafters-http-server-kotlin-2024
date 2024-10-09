@@ -184,6 +184,8 @@ data class ServerResponse(
 
         val contentLength = "Content-Length: ${content.length}\r\n"
 
+        println("contentLength " + contentLength)
+
         return "$contentType$contentLength$crlfHeadersLine"
     }
 
