@@ -52,7 +52,7 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
             println("accepted new connection")
 
             println("HERE 1 ")
-            val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+            val input = clientSocket.getInputStream().bufferedReader()
             println("HERE 2 ")
 
             val output = PrintWriter(clientSocket.getOutputStream(), true)
