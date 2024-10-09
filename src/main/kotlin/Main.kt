@@ -175,9 +175,9 @@ data class ServerResponse(
     private val crlfHeadersLine = "\r\n"
 
     private fun getHeader(): String {
-        if(content.isEmpty()) {
-            return crlfHeadersLine
-        }
+//        if(content.isEmpty()) {
+//            return crlfHeadersLine
+//        }
 
         val contentLength = "Content-Length: ${content.length}\r\n"
 
