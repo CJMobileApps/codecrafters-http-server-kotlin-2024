@@ -1,5 +1,6 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
@@ -222,13 +223,16 @@ data class ServerRequest(
     }
 }
 
-fun buildServerRequest(input: BufferedReader): ServerRequest {
+suspend fun buildServerRequest(input: BufferedReader): ServerRequest {
     val serverRequest = ServerRequest()
 
     val lines = mutableListOf<String>()
     try {
         println("HERE_ 10")
-        println("input ready " + input.ready())
+        while (!input.ready()) {
+            delay(1000)
+            println("input not ready yet ... ")
+        }
 
         var line = input.readLine()
         println("line 1 " + input.readLine())
