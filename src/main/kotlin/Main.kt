@@ -230,7 +230,7 @@ suspend fun buildServerRequest2(input: BufferedReader): ServerRequest {
     try {
         println("HERE_ 11")
         while (!input.ready()) {
-            delay(1000)
+            //delay(1000)
             println("input not ready yet ... ")
         }
 
