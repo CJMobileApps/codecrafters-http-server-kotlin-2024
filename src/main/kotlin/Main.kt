@@ -231,7 +231,7 @@ suspend fun buildServerRequest2(input: BufferedReader): ServerRequest {
         println("HERE_ 11")
         while (!input.ready()) {
             //delay(1000)
-            println("input not ready yet ... ")
+            //println("input not ready yet ... ")
         }
 
         var line = input.readLine()
