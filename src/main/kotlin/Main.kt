@@ -228,6 +228,7 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
         println("HERE_ 10")
         println("input " + input)
         var line = input.readLine()
+        println("line 1 " + input.readLine())
         while (!line.isNullOrEmpty()) {
             lines.add(line)
             line = input.readLine()
@@ -237,7 +238,7 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
         println("HERE_ e" + e)
     }
 
-    println(lines)
+    println("lines: " + lines)
 
     if (lines.size >= 1) {
         serverRequest.requestStatusLine = lines.first()
