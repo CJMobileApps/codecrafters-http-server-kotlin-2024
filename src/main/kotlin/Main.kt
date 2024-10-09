@@ -36,24 +36,26 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
     while (true) {
-        withContext(Dispatchers.IO) {
-            val clientSocket = serverSocket.accept() // Wait for connection from client.
-            println("accepted new connection")
+        launch {
+            withContext(Dispatchers.IO) {
+                val clientSocket = serverSocket.accept() // Wait for connection from client.
+                println("accepted new connection")
 
-            val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-            val output = PrintWriter(clientSocket.getOutputStream(), true)
+                val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+                val output = PrintWriter(clientSocket.getOutputStream(), true)
 
-            val serverRequest = buildServerRequest(input = input)
+                val serverRequest = buildServerRequest(input = input)
 
-            val httpResponse = buildResponse(
-                serverRequest = serverRequest
-            )
-            println()
-            println("httpResponse $httpResponse")
+                val httpResponse = buildResponse(
+                    serverRequest = serverRequest
+                )
+                println()
+                println("httpResponse $httpResponse")
 
-            output.print(httpResponse)
-            output.close()
-            println("Ready for new connection...")
+                output.print(httpResponse)
+                output.close()
+                println("Ready for new connection...")
+            }
         }
     }
 }
