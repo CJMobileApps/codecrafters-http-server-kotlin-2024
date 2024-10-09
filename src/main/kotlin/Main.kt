@@ -2,6 +2,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket;
@@ -89,19 +90,34 @@ fun ServerResponse.buildResponseStatusLine(
     return if (requestUrl == localServerUrl) {
         this.setFoundOk()
     } else {
-        if(requestHostNamePort != serverState.localServerHostNamePort()) {
+        if (requestHostNamePort != serverState.localServerHostNamePort()) {
             return this.setNotFound()
         }
 
-        if(requestStatusLineArray[1] == "/user-agent") {
+        if (requestStatusLineArray[1] == "/user-agent") {
             this.content = serverRequest.getUserAgent()
             return this.setFoundOk()
         }
 
         val requestPaths = requestStatusLineArray[1].split("/")
-
-
         var contentFromPath = ""
+
+        if (requestPaths[1] == "files") {
+            val file = File("/tmp/${requestPaths[2]}")
+
+            return if(file.exists()) {
+//                println("file " + file)
+//                println("file is file: " + file.exists())
+//                println("file size " + file.length())
+                val text = file.readText()
+                this.contentType = "Content-Type: application/octet-stream\r\n"
+                this.content = text
+                this.setFoundOk()
+            } else {
+                this.setNotFound()
+            }
+        }
+
         serverState.allowedPaths.forEach { entirePath ->
             val paths = "/$entirePath".split("/")
 
@@ -116,6 +132,7 @@ fun ServerResponse.buildResponseStatusLine(
                 if(path != requestPaths[i]) return@forEach
             }
 
+            this.contentType = "Content-Type: text/plain\r\n"
             this.content = contentFromPath
             return this.setFoundOk()
         }
@@ -142,6 +159,7 @@ data class ServerResponse(
     var statusCode: String = "",
     var optionalReasonPhrase: String = "",
     var content: String = "",
+    var contentType: String = ""
 ) {
 
     private fun getStatusLine(): String {
@@ -156,7 +174,6 @@ data class ServerResponse(
             return crlfHeadersLine
         }
 
-        val contentType = "Content-Type: text/plain\r\n"
         val contentLength = "Content-Length: ${content.length}\r\n"
 
         return "$contentType$contentLength$crlfHeadersLine"
