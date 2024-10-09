@@ -167,7 +167,7 @@ data class ServerResponse(
     var statusCode: String = "",
     var optionalReasonPhrase: String = "",
     var content: String = "",
-    var contentType: String = ""
+    var contentType: String = "Content-Type: text/plain\r\n"
 ) {
 
     private fun getStatusLine(): String {
