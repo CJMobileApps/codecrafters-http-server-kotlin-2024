@@ -59,7 +59,7 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
 
             println("HERE 3 ")
 
-            val serverRequest = buildServerRequest(input = input)
+            val serverRequest = buildServerRequest2(input = input)
 
             println("HERE 4 ")
 
@@ -223,7 +223,7 @@ data class ServerRequest(
     }
 }
 
-suspend fun buildServerRequest(input: BufferedReader): ServerRequest {
+suspend fun buildServerRequest2(input: BufferedReader): ServerRequest {
     val serverRequest = ServerRequest()
 
     val lines = mutableListOf<String>()
