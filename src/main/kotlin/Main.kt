@@ -228,7 +228,8 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     val lines = mutableListOf<String>()
     try {
         println("HERE_ 10")
-        println("input " + input)
+        println("input ready " + input.ready())
+
         var line = input.readLine()
         println("line 1 " + input.readLine())
         while (!line.isNullOrEmpty()) {
