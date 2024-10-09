@@ -96,6 +96,7 @@ fun ServerResponse.buildResponseStatusLine(
     println("localServerUrl " + localServerUrl)
 
     return if (requestUrl == localServerUrl) {
+        this.contentType = "Content-Type: text/plain\r\n"
         this.setFoundOk()
     } else {
         if (requestHostNamePort != serverState.localServerHostNamePort()) {
