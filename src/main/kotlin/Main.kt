@@ -228,7 +228,7 @@ suspend fun buildServerRequest2(input: BufferedReader): ServerRequest {
 
     val lines = mutableListOf<String>()
     try {
-        println("HERE_ 11")
+        println("HERE_ 11 this is buggy")
         while (!input.ready()) {
             //delay(1000)
             //println("input not ready yet ... ")
