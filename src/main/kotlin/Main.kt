@@ -92,6 +92,9 @@ fun ServerResponse.buildResponseStatusLine(
     val requestUrl = requestHostNamePort + requestStatusLineArray[1]
     val localServerUrl = serverState.localServerUrl()
 
+    println("requestUrl " + requestUrl)
+    println("localServerUrl " + localServerUrl)
+
     return if (requestUrl == localServerUrl) {
         this.setFoundOk()
     } else {
