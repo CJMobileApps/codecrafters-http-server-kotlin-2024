@@ -42,12 +42,14 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
 
     while (true) {
 
-        val clientSocket = withContext(Dispatchers.IO) {
-            serverSocket.accept()
-        } // Wait for connection from client.
-        println("accepted new connection")
+//        val clientSocket = withContext(Dispatchers.IO) {
+//            serverSocket.accept()
+//        } // Wait for connection from client.
 
         withContext(Dispatchers.IO) {
+            val clientSocket = serverSocket.accept()
+            println("accepted new connection")
+
             println("HERE 1 ")
             val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
             println("HERE 2 ")
@@ -227,13 +229,13 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     try {
         println("HERE_ 10")
         println("input " + input)
-        //var line = input.readLine()
+        var line = input.readLine()
         println("line 1 " + input.readLine())
-//        while (!line.isNullOrEmpty()) {
-//            lines.add(line)
-//            line = input.readLine()
-//            println("e " + lines)
-//        }
+        while (!line.isNullOrEmpty()) {
+            lines.add(line)
+            line = input.readLine()
+            println("e " + lines)
+        }
     } catch (e :Exception) {
         println("HERE_ e" + e)
     }
