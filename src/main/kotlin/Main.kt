@@ -48,10 +48,17 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
         println("accepted new connection")
 
         withContext(Dispatchers.IO) {
+            println("HERE 1 ")
             val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+            println("HERE 2 ")
+
             val output = PrintWriter(clientSocket.getOutputStream(), true)
 
+            println("HERE 3 ")
+
             val serverRequest = buildServerRequest(input = input)
+
+            println("HERE 4 ")
 
             val httpResponse = buildResponse(
                 serverRequest = serverRequest
