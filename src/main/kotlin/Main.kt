@@ -227,13 +227,13 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     try {
         println("HERE_ 10")
         println("input " + input)
-        var line = input.readLine()
+        //var line = input.readLine()
         println("line 1 " + input.readLine())
-        while (!line.isNullOrEmpty()) {
-            lines.add(line)
-            line = input.readLine()
-            println("e " + lines)
-        }
+//        while (!line.isNullOrEmpty()) {
+//            lines.add(line)
+//            line = input.readLine()
+//            println("e " + lines)
+//        }
     } catch (e :Exception) {
         println("HERE_ e" + e)
     }
