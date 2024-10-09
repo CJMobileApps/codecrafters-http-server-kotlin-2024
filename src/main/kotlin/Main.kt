@@ -1,6 +1,7 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
@@ -18,6 +19,11 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     println("Logs from your program will appear here!")
 
     // todo check if first arguemtn is "--directory"
+
+    arguments.forEach {
+        println("argument " + it)
+
+    }
     if(arguments.isNotEmpty()) dirPath = arguments[1]
 
     serverState = ServerState()
@@ -34,44 +40,27 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     // and nc -vz 127.0.0.1 4221 in another. (-v gives more verbose output, -z just scan for listening daemons, without sending any data to them.)
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
-
-    /* test multiple connections
-    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
-    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
-    (sleep 3 && printf "GET / HTTP/1.1\r\n\r\n") | nc localhost 4221 &
-     */
-
     while (true) {
+        launch {
+            withContext(Dispatchers.IO) {
+                val clientSocket = serverSocket.accept() // Wait for connection from client.
+                println("accepted new connection")
 
-//        val clientSocket = withContext(Dispatchers.IO) {
-//            serverSocket.accept()
-//        } // Wait for connection from client.
+                val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+                val output = PrintWriter(clientSocket.getOutputStream(), true)
 
-        withContext(Dispatchers.IO) {
-            val clientSocket = serverSocket.accept()
-            println("accepted new connection")
+                val serverRequest = buildServerRequest(input = input)
 
-            println("HERE 1 ")
-            val input = clientSocket.getInputStream().bufferedReader()
-            println("HERE 2 ")
+                val httpResponse = buildResponse(
+                    serverRequest = serverRequest
+                )
+                println()
+                println("httpResponse $httpResponse")
 
-            val output = PrintWriter(clientSocket.getOutputStream(), true)
-
-            println("HERE 3 ")
-
-            val serverRequest = buildServerRequest2(input = input)
-
-            println("HERE 4 ")
-
-            val httpResponse = buildResponse(
-                serverRequest = serverRequest
-            )
-            println()
-            println("httpResponse $httpResponse")
-
-            output.print(httpResponse)
-            output.close()
-            println("Ready for new connection...")
+                output.print(httpResponse)
+                output.close()
+                println("Ready for new connection...")
+            }
         }
     }
 }
@@ -223,16 +212,12 @@ data class ServerRequest(
     }
 }
 
-suspend fun buildServerRequest2(input: BufferedReader): ServerRequest {
+fun buildServerRequest(input: BufferedReader): ServerRequest {
     val serverRequest = ServerRequest()
 
     val lines = mutableListOf<String>()
     try {
         println("HERE_ 11 this is buggy")
-        while (!input.ready()) {
-            //delay(1000)
-            //println("input not ready yet ... ")
-        }
 
         var line = input.readLine()
         println("line 1 " + input.readLine())
