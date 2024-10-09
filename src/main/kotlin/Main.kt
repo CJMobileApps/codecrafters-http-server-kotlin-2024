@@ -9,10 +9,15 @@ import java.net.ServerSocket;
 
 lateinit var serverState: ServerState
 
-suspend fun main()  = coroutineScope {
+var dirPath: String? = null
+
+suspend fun main(arguments: Array<String>)  = coroutineScope {
 
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println("Logs from your program will appear here!")
+
+    // todo check if first arguemtn is "--directory"
+    if(arguments.isNotEmpty()) dirPath = arguments[1]
 
     serverState = ServerState()
     // Uncomment this block to pass the first stage
@@ -103,7 +108,7 @@ fun ServerResponse.buildResponseStatusLine(
         var contentFromPath = ""
 
         if (requestPaths[1] == "files") {
-            val file = File("/tmp/${requestPaths[2]}")
+            val file = File("$dirPath${requestPaths[2]}")
 
             return if(file.exists()) {
 //                println("file " + file)
