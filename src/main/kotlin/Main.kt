@@ -23,9 +23,8 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
 
     serverState = ServerState()
     // Uncomment this block to pass the first stage
-    val serverSocket = withContext(Dispatchers.IO) {
-        ServerSocket(serverState.port)
-    }
+    val serverSocket = ServerSocket(serverState.port)
+
 
     // Since the tester restarts your program quite often, setting SO_REUSEADDR
     // ensures that we don't run into 'Address already in use' errors
@@ -36,10 +35,11 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
     while (true) {
+        val clientSocket = serverSocket.accept() // Wait for connection from client.
+        println("accepted new connection")
+
         launch {
             withContext(Dispatchers.IO) {
-                val clientSocket = serverSocket.accept() // Wait for connection from client.
-                println("accepted new connection")
 
                 val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
                 val output = PrintWriter(clientSocket.getOutputStream(), true)
