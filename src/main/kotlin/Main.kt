@@ -19,11 +19,6 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     println("Logs from your program will appear here!")
 
     // todo check if first arguemtn is "--directory"
-
-    arguments.forEach {
-        println("argument " + it)
-
-    }
     if(arguments.isNotEmpty()) dirPath = arguments[1]
 
     serverState = ServerState()
@@ -41,26 +36,24 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     // curl -v http://localhost:4221
     // curl -v http://localhost:4221/echo/pineapple
     while (true) {
-        launch {
-            withContext(Dispatchers.IO) {
-                val clientSocket = serverSocket.accept() // Wait for connection from client.
-                println("accepted new connection")
+        withContext(Dispatchers.IO) {
+            val clientSocket = serverSocket.accept() // Wait for connection from client.
+            println("accepted new connection")
 
-                val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-                val output = PrintWriter(clientSocket.getOutputStream(), true)
+            val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
+            val output = PrintWriter(clientSocket.getOutputStream(), true)
 
-                val serverRequest = buildServerRequest(input = input)
+            val serverRequest = buildServerRequest(input = input)
 
-                val httpResponse = buildResponse(
-                    serverRequest = serverRequest
-                )
-                println()
-                println("httpResponse $httpResponse")
+            val httpResponse = buildResponse(
+                serverRequest = serverRequest
+            )
+            println()
+            println("httpResponse $httpResponse")
 
-                output.print(httpResponse)
-                output.close()
-                println("Ready for new connection...")
-            }
+            output.print(httpResponse)
+            output.close()
+            println("Ready for new connection...")
         }
     }
 }
