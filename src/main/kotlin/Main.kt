@@ -12,7 +12,7 @@ lateinit var serverState: ServerState
 
 var dirPath: String? = null
 
-suspend fun main(arguments: Array<String>)  = coroutineScope {
+suspend fun main(arguments: Array<String>) = coroutineScope {
 
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println("Logs from your program will appear here!")
@@ -23,7 +23,7 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
 //        if()
 //
 //    }
-    if(arguments.isNotEmpty()) dirPath = arguments[1]
+    if (arguments.isNotEmpty()) dirPath = arguments[1]
 
     serverState = ServerState()
     // Uncomment this block to pass the first stage
@@ -87,12 +87,12 @@ fun ServerResponse.buildResponseStatusLine(
     val requestUrlArray = requestHostPort.split(" ")
 
     // localhost:4221  /index.html
-    val requestHostNamePort = if (requestUrlArray.size > 2) requestUrlArray[1] else serverState.localServerHostNamePort()
+    val requestHostNamePort =
+        if (requestUrlArray.size > 2) requestUrlArray[1] else serverState.localServerHostNamePort()
     val requestUrl = requestHostNamePort + requestStatusLineArray[1]
     val localServerUrl = serverState.localServerUrl()
 
     return if (requestUrl == localServerUrl) {
-        //TODO I dont think you need this here this.contentType = "Content-Type: application/octet-stream\r\n"
         this.setFoundOk()
     } else {
         if (requestHostNamePort != serverState.localServerHostNamePort()) {
@@ -145,15 +145,15 @@ fun ServerResponse.buildResponseStatusLine(
         serverState.allowedPaths.forEach { entirePath ->
             val paths = "/$entirePath".split("/")
 
-            if(requestPaths.size != paths.size) return@forEach
+            if (requestPaths.size != paths.size) return@forEach
 
-            paths.forEachIndexed paths@ { i, path ->
+            paths.forEachIndexed paths@{ i, path ->
                 if (path == "*") {
                     contentFromPath = requestPaths[i]
                     return@paths
                 }
 
-                if(path != requestPaths[i]) return@forEach
+                if (path != requestPaths[i]) return@forEach
             }
 
             this.contentType = "Content-Type: text/plain\r\n"
@@ -193,19 +193,18 @@ data class ServerResponse(
 ) {
 
     private fun getStatusLine(): String {
-        return  "$httpVersion $statusCode $optionalReasonPhrase$crlfStatusLine"
+        return "$httpVersion $statusCode $optionalReasonPhrase$crlfStatusLine"
     }
 
     // Headers (Empty)
     private val crlfHeadersLine = "\r\n"
 
     private fun getHeader(): String {
-        //todo next thing to fix ?
-        if(content.isEmpty()) {
+        if (content.isEmpty()) {
             return crlfHeadersLine
         }
 
-        val contentLength =  "Content-Length: ${content.length}\r\n"
+        val contentLength = "Content-Length: ${content.length}\r\n"
 
         return "$contentType$contentLength$crlfHeadersLine"
     }
@@ -217,7 +216,7 @@ data class ServerResponse(
     fun getResponse(): String {
         return "${getStatusLine()}${getHeader()}${getResponseBody()}"
     }
- }
+}
 
 data class ServerRequest(
     var requestStatusLine: String = "",
