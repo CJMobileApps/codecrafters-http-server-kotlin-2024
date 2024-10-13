@@ -127,7 +127,7 @@ fun ServerResponse.buildResponseStatusLine(
         if (requestStatusLineArray[1] == "/user-agent") {
             this.contentType = "Content-Type: text/plain\r\n"
             this.content = serverRequest.getUserAgent()
-            //this.contentLength = content.length.toString()
+            this.contentLength = content.length.toString()
             return this.setFoundOk()
         }
 
