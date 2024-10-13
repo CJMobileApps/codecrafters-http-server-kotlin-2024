@@ -50,7 +50,7 @@ suspend fun main(arguments: Array<String>) = coroutineScope {
             withContext(Dispatchers.IO) {
 
                 val input = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
-                val output = PrintWriter(clientSocket.getOutputStream(), true)
+                val output = clientSocket.getOutputStream()
 
                 val serverRequest = buildServerRequest(input = input)
 
@@ -61,11 +61,6 @@ suspend fun main(arguments: Array<String>) = coroutineScope {
 
                 val httpResponse = serverResponse.buildResponse()
                 println()
-                println("httpResponse $httpResponse")
-
-
-                //output.print(httpResponse)
-
 
                 val buffer = ByteArrayOutputStream()
                 buffer.write(httpResponse.toByteArray())
@@ -73,11 +68,9 @@ suspend fun main(arguments: Array<String>) = coroutineScope {
                     buffer.write(it)
                 }
 
-                println("HERE_ buffer " + buffer)
-                clientSocket.getOutputStream().write(buffer.toByteArray())
-                clientSocket.getOutputStream().close()
-                //output.print(it.toString())
-                //output.close()
+                println("buffer response:\n $buffer")
+                output.write(buffer.toByteArray())
+                output.close()
                 println("Ready for new connection...")
             }
         }
@@ -97,7 +90,6 @@ fun ServerResponse.buildResponse(): String {
     return this.getResponse()
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 fun ServerResponse.buildResponseStatusLine(
     serverRequest: ServerRequest,
     input: BufferedReader,
@@ -160,7 +152,6 @@ fun ServerResponse.buildResponseStatusLine(
                     val body = CharArray(contentLength)
                     input.read(body)
                     val requestBody = String(body)
-                    println("request body: " + String(body))
 
                     val writer = PrintWriter("$dirPath${requestPaths[2]}")
                     writer.print(requestBody)
@@ -181,7 +172,6 @@ fun ServerResponse.buildResponseStatusLine(
                     contentFromPath = requestPaths[i]
                     this.content = contentFromPath
                     this.contentLength = content.length.toString()
-                    println("contentLength " + this.contentLength)
                     return@paths
                 }
 
@@ -197,14 +187,9 @@ fun ServerResponse.buildResponseStatusLine(
                         ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
                             this.encoding = ServerState.AllowedEncoding.GZIP.name.lowercase()
 
-                            println("conetnet " + contentFromPath)
                             val compressedContent = compress(contentFromPath)
-                            println("CompressedContent $compressedContent")
-                            println("CompressedContent ${compressedContent.toString()}")
-                            println("CompressedContent ${compressedContent.size}")
                             this.contentLength = compressedContent.size.toString()
                             this.contentBytes = compressedContent
-
 
                             this.content = compressedContent.toString()
                         }
