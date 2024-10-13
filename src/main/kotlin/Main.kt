@@ -73,6 +73,7 @@ fun buildResponse(serverRequest: ServerRequest, input: BufferedReader): String {
     return serverResponse.getResponse()
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 fun ServerResponse.buildResponseStatusLine(
     serverRequest: ServerRequest,
     input: BufferedReader,
@@ -150,6 +151,7 @@ fun ServerResponse.buildResponseStatusLine(
             paths.forEachIndexed paths@{ i, path ->
                 if (path == "*") {
                     contentFromPath = requestPaths[i]
+                    this.content = contentFromPath
                     return@paths
                 }
 
@@ -164,13 +166,14 @@ fun ServerResponse.buildResponseStatusLine(
                     when (encoding) {
                         ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
                             this.encoding = ServerState.AllowedEncoding.GZIP.name.lowercase()
+                            this.content = contentFromPath.toByteArray().toHexString()
                         }
                     }
                 }
             }
 
             this.contentType = "Content-Type: text/plain\r\n"
-            this.content = contentFromPath
+
             return this.setFoundOk()
         }
 
