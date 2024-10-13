@@ -7,9 +7,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStreamReader
 import java.io.PrintWriter
-import java.math.BigInteger
 import java.net.ServerSocket
-import java.util.HexFormat
 import java.util.zip.GZIPOutputStream
 
 
@@ -214,14 +212,6 @@ fun compress( s: String): ByteArray {
     return byteStream.toByteArray()
 }
 
-fun String.toHex2(): String {
-    return String.format("%040x", BigInteger(1, this.toByteArray()))
-}
-
-fun String.toHex(): String {
-   return  HexFormat.of().formatHex(this.toByteArray())
-}
-
 fun ServerResponse.setCreated(): ServerResponse {
     this.statusCode = "201"
     this.optionalReasonPhrase = "Created"
@@ -276,8 +266,6 @@ data class ServerResponse(
     }
 
     fun getResponse(): String {
-//        return "${getStatusLine()}${getHeader()}${getResponseBody()}"
-
         // if not gzip compression set responseBody
         val responseBody = if(!encoding.contains(ServerState.AllowedEncoding.GZIP.name.lowercase())) {
             getResponseBody()
