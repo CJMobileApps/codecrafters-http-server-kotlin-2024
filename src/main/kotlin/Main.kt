@@ -157,11 +157,14 @@ fun ServerResponse.buildResponseStatusLine(
             }
 
             if(serverRequest.requestContentEncoding.isNotEmpty()) {
-                val contentEncoding = serverRequest.requestContentEncoding.split(" ")
-                when (contentEncoding[1]) {
-                    ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
-                        println("You got here??????????????")
-                        this.encoding = ServerState.AllowedEncoding.GZIP.name
+                val contentEncoding = serverRequest.requestContentEncoding.split(": ")
+
+                val encodingsList = contentEncoding[1].split(", ")
+                encodingsList.forEach { encoding ->
+                    when (encoding) {
+                        ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
+                            this.encoding = ServerState.AllowedEncoding.GZIP.name.lowercase()
+                        }
                     }
                 }
             }
