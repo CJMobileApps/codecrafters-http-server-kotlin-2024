@@ -191,7 +191,8 @@ data class ServerResponse(
     var statusCode: String = "",
     var optionalReasonPhrase: String = "",
     var content: String = "",
-    var contentType: String = "Content-Type: text/plain\r\n" //todo remove this from here at a later time
+    var contentType: String = "",
+    //var contentType: String = "Content-Type: text/plain\r\n" //todo remove this from here at a later time
 ) {
 
     private fun getStatusLine(): String {
@@ -202,6 +203,7 @@ data class ServerResponse(
     private val crlfHeadersLine = "\r\n"
 
     private fun getHeader(): String {
+        //todo next thing to fix
 //        if(content.isEmpty()) {
 //            return crlfHeadersLine
 //        }
@@ -246,7 +248,7 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
         line = input.readLine()
     }
 
-    println("lines " + lines)
+    println("lines $lines")
     if (lines.size >= 1) {
         serverRequest.requestStatusLine = lines.first()
     }
@@ -262,19 +264,6 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     lines
         .filter { it.contains("Content-Length: ") }
         .map { serverRequest.requestContentLength = it }
-
-//    if (lines.size >= 5) {
-//        if (lines[2] != "Accept: */*") {
-//            serverRequest.requestHeader = lines[3]
-//        } else {
-//            serverRequest.requestHeader = lines[4]
-//        }
-//    }
-//
-//    // I think this is request body
-//    if (lines.size >= 5) {
-//        serverRequest.requestBody = lines[4]
-//    }
 
     println(serverRequest)
     return serverRequest
