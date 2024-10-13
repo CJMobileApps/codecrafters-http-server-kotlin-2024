@@ -3,10 +3,15 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStreamReader
 import java.io.PrintWriter
-import java.net.ServerSocket;
+import java.math.BigInteger
+import java.net.ServerSocket
+import java.util.HexFormat
+import java.util.zip.GZIPOutputStream
+
 
 lateinit var serverState: ServerState
 
@@ -49,28 +54,47 @@ suspend fun main(arguments: Array<String>) = coroutineScope {
 
                 val serverRequest = buildServerRequest(input = input)
 
-                val httpResponse = buildResponse(
+                val serverResponse =  buildServerResponse(
                     serverRequest = serverRequest,
                     input = input,
                 )
+
+                val httpResponse = serverResponse.buildResponse()
                 println()
                 println("httpResponse $httpResponse")
 
-                output.print(httpResponse)
-                output.close()
+
+                //output.print(httpResponse)
+
+
+                val buffer = ByteArrayOutputStream()
+                buffer.write(httpResponse.toByteArray())
+                serverResponse.contentBytes?.let {
+                    buffer.write(it)
+                }
+
+                println("HERE_ buffer " + buffer)
+                clientSocket.getOutputStream().write(buffer.toByteArray())
+                clientSocket.getOutputStream().close()
+                //output.print(it.toString())
+                //output.close()
                 println("Ready for new connection...")
             }
         }
     }
 }
 
-fun buildResponse(serverRequest: ServerRequest, input: BufferedReader): String {
+fun buildServerResponse(serverRequest: ServerRequest, input: BufferedReader): ServerResponse {
 
     // Status
     var serverResponse = ServerResponse()
     serverResponse = serverResponse.buildResponseStatusLine(serverRequest = serverRequest, input = input)
 
-    return serverResponse.getResponse()
+    return serverResponse
+}
+
+fun ServerResponse.buildResponse(): String {
+    return this.getResponse()
 }
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -103,6 +127,7 @@ fun ServerResponse.buildResponseStatusLine(
         if (requestStatusLineArray[1] == "/user-agent") {
             this.contentType = "Content-Type: text/plain\r\n"
             this.content = serverRequest.getUserAgent()
+            //this.contentLength = content.length.toString()
             return this.setFoundOk()
         }
 
@@ -119,6 +144,9 @@ fun ServerResponse.buildResponseStatusLine(
                         val text = file.readText()
                         this.contentType = "Content-Type: application/octet-stream\r\n"
                         this.content = text
+
+                        this.contentLength = content.length.toString()
+                        println("contentLength " + this.contentLength)
                         this.setFoundOk()
                     } else {
                         this.setNotFound()
@@ -152,6 +180,8 @@ fun ServerResponse.buildResponseStatusLine(
                 if (path == "*") {
                     contentFromPath = requestPaths[i]
                     this.content = contentFromPath
+                    this.contentLength = content.length.toString()
+                    println("contentLength " + this.contentLength)
                     return@paths
                 }
 
@@ -166,7 +196,17 @@ fun ServerResponse.buildResponseStatusLine(
                     when (encoding) {
                         ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
                             this.encoding = ServerState.AllowedEncoding.GZIP.name.lowercase()
-                            this.content = contentFromPath.toByteArray().toHexString()
+
+                            println("conetnet " + contentFromPath)
+                            val compressedContent = compress(contentFromPath)
+                            println("CompressedContent $compressedContent")
+                            println("CompressedContent ${compressedContent.toString()}")
+                            println("CompressedContent ${compressedContent.size}")
+                            this.contentLength = compressedContent.size.toString()
+                            this.contentBytes = compressedContent
+
+
+                            this.content = compressedContent.toString()
                         }
                     }
                 }
@@ -179,6 +219,22 @@ fun ServerResponse.buildResponseStatusLine(
 
         this.setNotFound()
     }
+}
+
+fun compress( s: String): ByteArray {
+    val byteStream = ByteArrayOutputStream()
+    GZIPOutputStream(byteStream)
+        .bufferedWriter()
+        .use { it.write(s, 0, s.length) }
+    return byteStream.toByteArray()
+}
+
+fun String.toHex2(): String {
+    return String.format("%040x", BigInteger(1, this.toByteArray()))
+}
+
+fun String.toHex(): String {
+   return  HexFormat.of().formatHex(this.toByteArray())
 }
 
 fun ServerResponse.setCreated(): ServerResponse {
@@ -205,6 +261,8 @@ data class ServerResponse(
     var statusCode: String = "",
     var optionalReasonPhrase: String = "",
     var content: String = "",
+    var contentBytes: ByteArray? = null,
+    var contentLength: String = "",
     var contentType: String = "",
     var encoding: String = "",
 ) {
@@ -221,7 +279,7 @@ data class ServerResponse(
             return crlfHeadersLine
         }
 
-        val contentLength = "Content-Length: ${content.length}\r\n"
+        val contentLength = "Content-Length: ${this.contentLength}\r\n"
 
         val contentEncoding = if(encoding.isNotEmpty()) "Content-Encoding: $encoding\r\n" else ""
 
@@ -233,7 +291,15 @@ data class ServerResponse(
     }
 
     fun getResponse(): String {
-        return "${getStatusLine()}${getHeader()}${getResponseBody()}"
+//        return "${getStatusLine()}${getHeader()}${getResponseBody()}"
+
+        // if not gzip compression set responseBody
+        val responseBody = if(!encoding.contains(ServerState.AllowedEncoding.GZIP.name.lowercase())) {
+            getResponseBody()
+        } else ""
+
+        return "${getStatusLine()}${getHeader()}${responseBody}"
+
     }
 }
 
