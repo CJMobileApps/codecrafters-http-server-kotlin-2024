@@ -1,6 +1,5 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -19,12 +18,16 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     println("Logs from your program will appear here!")
 
     // todo check if first arguemtn is "--directory"
+//    var index = 0
+//    while (index < arguments.size) {
+//        if()
+//
+//    }
     if(arguments.isNotEmpty()) dirPath = arguments[1]
 
     serverState = ServerState()
     // Uncomment this block to pass the first stage
     val serverSocket = ServerSocket(serverState.port)
-
 
     // Since the tester restarts your program quite often, setting SO_REUSEADDR
     // ensures that we don't run into 'Address already in use' errors
@@ -47,7 +50,8 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
                 val serverRequest = buildServerRequest(input = input)
 
                 val httpResponse = buildResponse(
-                    serverRequest = serverRequest
+                    serverRequest = serverRequest,
+                    input = input,
                 )
                 println()
                 println("httpResponse $httpResponse")
@@ -60,17 +64,18 @@ suspend fun main(arguments: Array<String>)  = coroutineScope {
     }
 }
 
-fun buildResponse(serverRequest: ServerRequest): String {
+fun buildResponse(serverRequest: ServerRequest, input: BufferedReader): String {
 
     // Status
     var serverResponse = ServerResponse()
-    serverResponse = serverResponse.buildResponseStatusLine(serverRequest = serverRequest)
+    serverResponse = serverResponse.buildResponseStatusLine(serverRequest = serverRequest, input = input)
 
     return serverResponse.getResponse()
 }
 
 fun ServerResponse.buildResponseStatusLine(
     serverRequest: ServerRequest,
+    input: BufferedReader,
 ): ServerResponse {
     val requestStatusLine = serverRequest.requestStatusLine
     val requestHostPort = serverRequest.requestHostPort
@@ -86,11 +91,8 @@ fun ServerResponse.buildResponseStatusLine(
     val requestUrl = requestHostNamePort + requestStatusLineArray[1]
     val localServerUrl = serverState.localServerUrl()
 
-    println("requestUrl " + requestUrl)
-    println("localServerUrl " + localServerUrl)
-
     return if (requestUrl == localServerUrl) {
-        this.contentType = "Content-Type: application/octet-stream\r\n"
+        //TODO I dont think you need this here this.contentType = "Content-Type: application/octet-stream\r\n"
         this.setFoundOk()
     } else {
         if (requestHostNamePort != serverState.localServerHostNamePort()) {
@@ -106,18 +108,39 @@ fun ServerResponse.buildResponseStatusLine(
         var contentFromPath = ""
 
         if (requestPaths[1] == "files") {
-            val file = File("$dirPath${requestPaths[2]}")
+            //TOOD here check if POST or GET
+            when (requestStatusLineArray[0]) {
+                "GET" -> {
+                    val file = File("$dirPath${requestPaths[2]}")
 
-            return if(file.exists()) {
+                    return if (file.exists()) {
 //                println("file " + file)
 //                println("file is file: " + file.exists())
 //                println("file size " + file.length())
-                val text = file.readText()
-                this.contentType = "Content-Type: application/octet-stream\r\n"
-                this.content = text
-                this.setFoundOk()
-            } else {
-                this.setNotFound()
+                        val text = file.readText()
+                        this.contentType = "Content-Type: application/octet-stream\r\n"
+                        this.content = text
+                        this.setFoundOk()
+                    } else {
+                        this.setNotFound()
+                    }
+                }
+
+                "POST" -> {
+                    // Content-Length: 6
+                    val requestContentLengthArray = serverRequest.requestContentLength.split(" ")
+                    val contentLength = requestContentLengthArray[1].toInt()
+                    val body = CharArray(contentLength)
+                    input.read(body)
+                    val requestBody = String(body)
+                    println("request body: " + String(body))
+
+                    val writer = PrintWriter("$dirPath${requestPaths[2]}")
+                    writer.print(requestBody)
+                    writer.close()
+
+                    return this.setCreated()
+                }
             }
         }
 
@@ -144,6 +167,12 @@ fun ServerResponse.buildResponseStatusLine(
     }
 }
 
+fun ServerResponse.setCreated(): ServerResponse {
+    this.statusCode = "201"
+    this.optionalReasonPhrase = "Created"
+    return this
+}
+
 fun ServerResponse.setFoundOk(): ServerResponse {
     this.statusCode = "200"
     this.optionalReasonPhrase = "OK"
@@ -162,7 +191,7 @@ data class ServerResponse(
     var statusCode: String = "",
     var optionalReasonPhrase: String = "",
     var content: String = "",
-    var contentType: String = "Content-Type: text/plain\r\n"
+    var contentType: String = "Content-Type: text/plain\r\n" //todo remove this from here at a later time
 ) {
 
     private fun getStatusLine(): String {
@@ -178,8 +207,6 @@ data class ServerResponse(
 //        }
 
         val contentLength = "Content-Length: ${content.length}\r\n"
-
-        println("contentLength " + contentLength)
 
         return "$contentType$contentLength$crlfHeadersLine"
     }
@@ -198,6 +225,7 @@ data class ServerRequest(
     var requestHostPort: String = "",
     var requestUserAgent: String = "",
     var requestHeader: String = "",
+    var requestContentLength: String = "",
     var requestBody: String = "",
 ) {
 
@@ -211,22 +239,14 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     val serverRequest = ServerRequest()
 
     val lines = mutableListOf<String>()
-    try {
-        println("HERE_ 11 this is buggy")
 
-        var line = input.readLine()
-        println("line 1 " + input.readLine())
-        while (!line.isNullOrEmpty()) {
-            lines.add(line)
-            line = input.readLine()
-            println("e " + lines)
-        }
-    } catch (e :Exception) {
-        println("HERE_ e" + e)
+    var line = input.readLine()
+    while (!line.isNullOrEmpty()) {
+        lines.add(line)
+        line = input.readLine()
     }
 
-    println("lines: " + lines)
-
+    println("lines " + lines)
     if (lines.size >= 1) {
         serverRequest.requestStatusLine = lines.first()
     }
@@ -238,6 +258,10 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     lines
         .filter { it.contains("User-Agent:") }
         .map { serverRequest.requestUserAgent = it }
+
+    lines
+        .filter { it.contains("Content-Length: ") }
+        .map { serverRequest.requestContentLength = it }
 
 //    if (lines.size >= 5) {
 //        if (lines[2] != "Accept: */*") {
