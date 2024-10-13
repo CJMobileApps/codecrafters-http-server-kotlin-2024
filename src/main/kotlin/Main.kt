@@ -109,15 +109,12 @@ fun ServerResponse.buildResponseStatusLine(
         var contentFromPath = ""
 
         if (requestPaths[1] == "files") {
-            //TOOD here check if POST or GET
             when (requestStatusLineArray[0]) {
                 "GET" -> {
                     val file = File("$dirPath${requestPaths[2]}")
 
                     return if (file.exists()) {
-//                println("file " + file)
-//                println("file is file: " + file.exists())
-//                println("file size " + file.length())
+
                         val text = file.readText()
                         this.contentType = "Content-Type: application/octet-stream\r\n"
                         this.content = text
@@ -193,7 +190,6 @@ data class ServerResponse(
     var optionalReasonPhrase: String = "",
     var content: String = "",
     var contentType: String = "",
-    //var contentType: String = "Content-Type: text/plain\r\n" //todo remove this from here at a later time
 ) {
 
     private fun getStatusLine(): String {
@@ -204,12 +200,12 @@ data class ServerResponse(
     private val crlfHeadersLine = "\r\n"
 
     private fun getHeader(): String {
-        //todo next thing to fix
-//        if(content.isEmpty()) {
-//            return crlfHeadersLine
-//        }
+        //todo next thing to fix ?
+        if(content.isEmpty()) {
+            return crlfHeadersLine
+        }
 
-        val contentLength = "Content-Length: ${content.length}\r\n"
+        val contentLength =  "Content-Length: ${content.length}\r\n"
 
         return "$contentType$contentLength$crlfHeadersLine"
     }
