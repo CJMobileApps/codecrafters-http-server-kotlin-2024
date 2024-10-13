@@ -156,6 +156,16 @@ fun ServerResponse.buildResponseStatusLine(
                 if (path != requestPaths[i]) return@forEach
             }
 
+            if(serverRequest.requestContentEncoding.isNotEmpty()) {
+                val contentEncoding = serverRequest.requestContentEncoding.split(" ")
+                when (contentEncoding[1]) {
+                    ServerState.AllowedEncoding.GZIP.name.lowercase() -> {
+                        println("You got here??????????????")
+                        this.encoding = ServerState.AllowedEncoding.GZIP.name
+                    }
+                }
+            }
+
             this.contentType = "Content-Type: text/plain\r\n"
             this.content = contentFromPath
             return this.setFoundOk()
@@ -190,6 +200,7 @@ data class ServerResponse(
     var optionalReasonPhrase: String = "",
     var content: String = "",
     var contentType: String = "",
+    var encoding: String = "",
 ) {
 
     private fun getStatusLine(): String {
@@ -206,7 +217,9 @@ data class ServerResponse(
 
         val contentLength = "Content-Length: ${content.length}\r\n"
 
-        return "$contentType$contentLength$crlfHeadersLine"
+        val contentEncoding = if(encoding.isNotEmpty()) "Content-Encoding: $encoding\r\n" else ""
+
+        return "$contentType$contentEncoding$contentLength$crlfHeadersLine"
     }
 
     private fun getResponseBody(): String {
@@ -225,6 +238,7 @@ data class ServerRequest(
     var requestHeader: String = "",
     var requestContentLength: String = "",
     var requestBody: String = "",
+    var requestContentEncoding: String = "",
 ) {
 
 
@@ -260,6 +274,10 @@ fun buildServerRequest(input: BufferedReader): ServerRequest {
     lines
         .filter { it.contains("Content-Length: ") }
         .map { serverRequest.requestContentLength = it }
+
+    lines
+        .filter { it.contains("Accept-Encoding: ") }
+        .map { serverRequest.requestContentEncoding = it }
 
     println(serverRequest)
     return serverRequest

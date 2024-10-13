@@ -11,4 +11,8 @@ data class ServerState(
     fun localServerUrl(): String {
         return "$hostName:$port/"
     }
+
+    enum class AllowedEncoding() {
+        GZIP
+    }
 }
